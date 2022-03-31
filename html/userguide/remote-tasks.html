@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>HTTP Callback Tasks (Webhooks) &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="next" title="Routing Tasks" href="routing.html" />
+    <link rel="prev" title="Periodic Tasks" href="periodic-tasks.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="routing.html" title="Routing Tasks"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="periodic-tasks.html" title="Periodic Tasks"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">User Guide</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/userguide/remote-tasks.html">go here</a>.
+        </p>
+    
+
+</div>
+    <div class="section" id="module-celery.task.http">
+<span id="http-callback-tasks-webhooks"></span><span id="guide-webhooks"></span><h1>HTTP Callback Tasks (Webhooks)<a class="headerlink" href="#module-celery.task.http" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#basics" id="id1">Basics</a><ul>
+<li><a class="reference internal" href="#enabling-the-http-task" id="id2">Enabling the HTTP task</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-webhook-example" id="id3">Django webhook example</a></li>
+<li><a class="reference internal" href="#ruby-on-rails-webhook-example" id="id4">Ruby on Rails webhook example</a></li>
+<li><a class="reference internal" href="#calling-webhook-tasks" id="id5">Calling webhook tasks</a></li>
+</ul>
+</div>
+<div class="section" id="basics">
+<span id="webhook-basics"></span><h2><a class="toc-backref" href="#id1">Basics</a><a class="headerlink" href="#basics" title="Permalink to this headline">¶</a></h2>
+<p>If you need to call into another language, framework or similar, you can
+do so by using HTTP callback tasks.</p>
+<p>The HTTP callback tasks uses GET/POST data to pass arguments and returns
+result as a JSON response. The scheme to call a task is:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span>GET http://example.com/mytask/?arg1=a&amp;arg2=b&amp;arg3=c
+</pre></div>
+</div>
+<p>or using POST:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">example</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">mytask</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">POST data needs to be form encoded.</p>
+</div>
+<p>Whether to use GET or POST is up to you and your requirements.</p>
+<p>The web page should then return a response in the following format
+if the execution was successful:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span>{&#39;status&#39;: &#39;success&#39;, &#39;retval&#39;: …}
+</pre></div>
+</div>
+<p>or if there was an error:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;failure&#39;</span><span class="p">,</span> <span class="s1">&#39;reason&#39;</span><span class="p">:</span> <span class="s1">&#39;Invalid moon alignment.&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="enabling-the-http-task">
+<h3><a class="toc-backref" href="#id2">Enabling the HTTP task</a><a class="headerlink" href="#enabling-the-http-task" title="Permalink to this headline">¶</a></h3>
+<p>To enable the HTTP dispatch task you have to add <a class="reference internal" href="#module-celery.task.http" title="celery.task.http"><code class="xref py py-mod docutils literal"><span class="pre">celery.task.http</span></code></a>
+to <a class="reference internal" href="../configuration.html#std:setting-CELERY_IMPORTS"><code class="xref std std-setting docutils literal"><span class="pre">CELERY_IMPORTS</span></code></a>, or start the worker with <code class="docutils literal"><span class="pre">-I</span>
+<span class="pre">celery.task.http</span></code>.</p>
+</div>
+</div>
+<div class="section" id="django-webhook-example">
+<span id="webhook-django-example"></span><h2><a class="toc-backref" href="#id3">Django webhook example</a><a class="headerlink" href="#django-webhook-example" title="Permalink to this headline">¶</a></h2>
+<p>With this information you could define a simple task in Django:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">from</span> <span class="nn">anyjson</span> <span class="kn">import</span> <span class="n">serialize</span>
+
+
+<span class="k">def</span> <span class="nf">multiply</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="s1">&#39;retval&#39;</span><span class="p">:</span> <span class="n">result</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">serialize</span><span class="p">(</span><span class="n">response</span><span class="p">),</span> <span class="n">mimetype</span><span class="o">=</span><span class="s1">&#39;application/json&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ruby-on-rails-webhook-example">
+<span id="webhook-rails-example"></span><h2><a class="toc-backref" href="#id4">Ruby on Rails webhook example</a><a class="headerlink" href="#ruby-on-rails-webhook-example" title="Permalink to this headline">¶</a></h2>
+<p>or in Ruby on Rails:</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">multiply</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:x</span><span class="o">].</span><span class="n">to_i</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">params</span><span class="o">[</span><span class="ss">:y</span><span class="o">].</span><span class="n">to_i</span>
+
+    <span class="vi">@status</span> <span class="o">=</span> <span class="p">{</span><span class="ss">:status</span> <span class="o">=&gt;</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="ss">:retval</span> <span class="o">=&gt;</span> <span class="vi">@x</span> <span class="o">*</span> <span class="vi">@y</span><span class="p">}</span>
+
+    <span class="n">render</span> <span class="ss">:json</span> <span class="o">=&gt;</span> <span class="vi">@status</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>You can easily port this scheme to any language/framework;
+new examples and libraries are very welcome.</p>
+</div>
+<div class="section" id="calling-webhook-tasks">
+<span id="webhook-calling"></span><h2><a class="toc-backref" href="#id5">Calling webhook tasks</a><a class="headerlink" href="#calling-webhook-tasks" title="Permalink to this headline">¶</a></h2>
+<p>To call a task you can use the <a class="reference internal" href="../reference/celery.task.http.html#celery.task.http.URL" title="celery.task.http.URL"><code class="xref py py-class docutils literal"><span class="pre">URL</span></code></a> class:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">celery.task.http</span> <span class="kn">import</span> <span class="n">URL</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">URL</span><span class="p">(</span><span class="s1">&#39;http://example.com/multiply&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_async</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="../reference/celery.task.http.html#celery.task.http.URL" title="celery.task.http.URL"><code class="xref py py-class docutils literal"><span class="pre">URL</span></code></a> is a shortcut to the <code class="xref py py-class docutils literal"><span class="pre">HttpDispatchTask</span></code>.
+You can subclass this to extend the
+functionality.</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">celery.task.http</span> <span class="kn">import</span> <span class="n">HttpDispatchTask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">HttpDispatchTask</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://example.com/multiply&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="go">100</span>
+</pre></div>
+</div>
+<p>The output of <strong class="program">celery worker</strong> (or the log file if enabled) should show the
+task being executed:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">INFO</span><span class="o">/</span><span class="n">MainProcess</span><span class="p">]</span> <span class="n">Task</span> <span class="n">celery</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">http</span><span class="o">.</span><span class="n">HttpDispatchTask</span>
+        <span class="p">[</span><span class="n">f2cc8efc</span><span class="o">-</span><span class="mi">2</span><span class="n">a14</span><span class="o">-</span><span class="mi">40</span><span class="n">cd</span><span class="o">-</span><span class="mi">85</span><span class="n">ad</span><span class="o">-</span><span class="n">f1c77c94beeb</span><span class="p">]</span> <span class="n">processed</span><span class="p">:</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<p>Since calling tasks can be done via HTTP using the
+<code class="xref py py-func docutils literal"><span class="pre">djcelery.views.apply()</span></code> view, calling tasks from other languages is easy.
+For an example service exposing tasks via HTTP you should have a look at
+<cite>examples/celery_http_gateway</cite> in the Celery distribution:
+<a class="reference external" href="http://github.com/celery/celery/tree/master/examples/celery_http_gateway/">http://github.com/celery/celery/tree/master/examples/celery_http_gateway/</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----MIIHTwYJKoZIhvcNAQcEoIIHQDCCBzwCAQExggEwMIIBLAIBADCBlDCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJKoZIhvcNAQEBBQAEgYA2+c723xlntHKQYQR9yn9BEtUhDoUUlnOqhniqvNMWB4k2R0JpVkrNSu5JCbdjNOqDXKHoRfIWe3HXJJMPZBJKFMD5Izprb6xEZlTGaWnlrGXFfkdBaILQQgWYqV0DnuNmtDXCvfYmyu0p1K04wLjAJ1ufnBSP1UaS6BTcoIOOuTELMAkGBSsOAwIaBQAwgcwGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIFg/2qPwa7UCAgah20QLIllcp0VHazYo2C9h8c6gn8MTcTnpW0WFXhz9ylc/i5dCXabkrrLBBfg8NygAuvYRr4k1zdC0AJIgsV/6rSAhehabRvjRDH2EZ8OieqHfIPfkAcTm+JqbS6Z27lXkebYPnJzhkZxW7+ZC6hU/H40JFXChTag8lhqJfZELiOZLWxxilj2mkwlkdMx1YL6lcPAA7ajpAwjsnJYd/9VxLA6MDmcOu+TKgggOHMIIDgzCCAuygAwIBAgIBADANBgkqhkiG9w0BAQUFADCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wHhcNMDQwMjEzMTAxMzE1WhcNMzUwMjEzMTAxMzE1WjCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMFHTt38RMxLXJyO2SmS+Ndl72T7oKJ4u4uw+6awntALWh03PewmIJuzbALScsTS4sZoS1fKciBGoh11gIfHzylvkdNe/hJl66/RGqrj5rFb08sAABNTzDTiqqNpJeBsYs/c2aiGozptX2RlnBktH+SUNpAajW724Nv2Wvhif6sFAgMBAAGjge4wgeswHQYDVR0OBBYEFJaffLvGbxe9WT9S1wob7BDWZJRrMIG7BgNVHSMEgbMwgbCAFJaffLvGbxe9WT9S1wob7BDWZJRroYGUpIGRMIGOMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJbmMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoGCSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbYIBADAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAIFfOlaagFrl71+jq6OKidbWFSE+Q4FqROvdgIONth+8kSK//Y/4ihuE4Ymvzn5ceE3S/iBSQQMjyvb+s2TWbQYDwcp129OPIbD9epdr4tJOUNiSojw7BHwYRiPh58S1xGlFgHFXwrEBb3dgNbMUa+u4qectsMAXpVHnD9wIyfmHMYIBmjCCAZYCAQEwgZQwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tAgEAMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xNTEyMTAxOTEzMzBaMCMGCSqGSIb3DQEJBDEWBBTUno4gI/mmaVaGVpgB/CWwQd3DeDANBgkqhkiG9w0BAQEFAASBgFmZ1j1Ss/FNl/JRIOakhBJEdm2KGLH0d2ewwTYIgIkEKSdc5Rg2/2xFS/dglcs5Te3R2GzaqjGlNSKldsk/MgZP/BudpHAASQ09hrfDy5TaBlRRl1Yu0WzGBKcVm/WRh0v2TVV8vBHVGiJD+aY5epgRXXI/XUKD0bp8tVV1T7LS-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="periodic-tasks.html"
+                        title="previous chapter">Periodic Tasks</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="routing.html"
+                        title="next chapter">Routing Tasks</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/userguide/remote-tasks.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="routing.html" title="Routing Tasks"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="periodic-tasks.html" title="Periodic Tasks"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >User Guide</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>celery.utils.term &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="copyright" title="Copyright" href="../../../copyright.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../utils.html" accesskey="U">celery.utils</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/_modules/celery/utils/term.html">go here</a>.
+        </p>
+    
+
+</div>
+    <h1>Source code for celery.utils.term</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    celery.utils.term</span>
+<span class="sd">    ~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">    Terminals and colors.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">platform</span>
+
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+
+<span class="kn">from</span> <span class="nn">kombu.utils.encoding</span> <span class="kn">import</span> <span class="n">safe_str</span>
+<span class="kn">from</span> <span class="nn">celery.five</span> <span class="kn">import</span> <span class="n">string</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;colored&#39;</span><span class="p">]</span>
+
+<span class="n">IS_WINDOWS</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span>
+
+<span class="n">BLACK</span><span class="p">,</span> <span class="n">RED</span><span class="p">,</span> <span class="n">GREEN</span><span class="p">,</span> <span class="n">YELLOW</span><span class="p">,</span> <span class="n">BLUE</span><span class="p">,</span> <span class="n">MAGENTA</span><span class="p">,</span> <span class="n">CYAN</span><span class="p">,</span> <span class="n">WHITE</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">OP_SEQ</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[</span><span class="si">%d</span><span class="s1">m&#39;</span>
+<span class="n">RESET_SEQ</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span>
+<span class="n">COLOR_SEQ</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[1;</span><span class="si">%d</span><span class="s1">m&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">fg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">COLOR_SEQ</span> <span class="o">%</span> <span class="n">s</span>
+
+
+<div class="viewcode-block" id="colored"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored">[docs]</a><span class="k">class</span> <span class="nc">colored</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Terminal colored text.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; c = colored(enabled=True)</span>
+<span class="sd">        &gt;&gt;&gt; print(str(c.red(&#39;the quick &#39;), c.blue(&#39;brown &#39;, c.bold(&#39;fox &#39;)),</span>
+<span class="sd">        ...       c.magenta(c.underline(&#39;jumps over&#39;)),</span>
+<span class="sd">        ...       c.yellow(&#39; the lazy &#39;),</span>
+<span class="sd">        ...       c.green(&#39;dog &#39;)))</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">IS_WINDOWS</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">op</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;op&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">black</span><span class="p">,</span>
+                      <span class="s1">&#39;red&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">red</span><span class="p">,</span>
+                      <span class="s1">&#39;green&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">green</span><span class="p">,</span>
+                      <span class="s1">&#39;yellow&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">yellow</span><span class="p">,</span>
+                      <span class="s1">&#39;blue&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">blue</span><span class="p">,</span>
+                      <span class="s1">&#39;magenta&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">magenta</span><span class="p">,</span>
+                      <span class="s1">&#39;cyan&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cyan</span><span class="p">,</span>
+                      <span class="s1">&#39;white&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">white</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">string</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fold_no_color</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">no_color</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">string</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">no_color</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">string</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">string</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="n">string</span><span class="p">(</span><span class="n">B</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="colored.no_color"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.no_color">[docs]</a>    <span class="k">def</span> <span class="nf">no_color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="n">reduce</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fold_no_color</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">))</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
+
+<div class="viewcode-block" id="colored.embed"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.embed">[docs]</a>    <span class="k">def</span> <span class="nf">embed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">op</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">string</span><span class="p">(</span><span class="n">prefix</span><span class="p">),</span> <span class="n">string</span><span class="p">(</span><span class="n">reduce</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">))))</span></div>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="n">RESET_SEQ</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(),</span> <span class="n">string</span><span class="p">(</span><span class="n">suffix</span><span class="p">))))</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">safe_str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__unicode__</span><span class="p">())</span>
+
+<div class="viewcode-block" id="colored.node"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.node">[docs]</a>    <span class="k">def</span> <span class="nf">node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enabled</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">op</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.black"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.black">[docs]</a>    <span class="k">def</span> <span class="nf">black</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">BLACK</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.red"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.red">[docs]</a>    <span class="k">def</span> <span class="nf">red</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">RED</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.green"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.green">[docs]</a>    <span class="k">def</span> <span class="nf">green</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">GREEN</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.yellow"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.yellow">[docs]</a>    <span class="k">def</span> <span class="nf">yellow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">YELLOW</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.blue"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.blue">[docs]</a>    <span class="k">def</span> <span class="nf">blue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">BLUE</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.magenta"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.magenta">[docs]</a>    <span class="k">def</span> <span class="nf">magenta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">MAGENTA</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.cyan"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.cyan">[docs]</a>    <span class="k">def</span> <span class="nf">cyan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">CYAN</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.white"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.white">[docs]</a>    <span class="k">def</span> <span class="nf">white</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">30</span> <span class="o">+</span> <span class="n">WHITE</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">no_color</span><span class="p">())</span>
+
+<div class="viewcode-block" id="colored.bold"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.bold">[docs]</a>    <span class="k">def</span> <span class="nf">bold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">OP_SEQ</span> <span class="o">%</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.underline"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.underline">[docs]</a>    <span class="k">def</span> <span class="nf">underline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">OP_SEQ</span> <span class="o">%</span> <span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.blink"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.blink">[docs]</a>    <span class="k">def</span> <span class="nf">blink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">OP_SEQ</span> <span class="o">%</span> <span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.reverse"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.reverse">[docs]</a>    <span class="k">def</span> <span class="nf">reverse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">OP_SEQ</span> <span class="o">%</span> <span class="mi">7</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.bright"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.bright">[docs]</a>    <span class="k">def</span> <span class="nf">bright</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">OP_SEQ</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="colored.ired"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.ired">[docs]</a>    <span class="k">def</span> <span class="nf">ired</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">RED</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.igreen"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.igreen">[docs]</a>    <span class="k">def</span> <span class="nf">igreen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">GREEN</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.iyellow"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.iyellow">[docs]</a>    <span class="k">def</span> <span class="nf">iyellow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">YELLOW</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.iblue"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.iblue">[docs]</a>    <span class="k">def</span> <span class="nf">iblue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">BLUE</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.imagenta"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.imagenta">[docs]</a>    <span class="k">def</span> <span class="nf">imagenta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">MAGENTA</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.icyan"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.icyan">[docs]</a>    <span class="k">def</span> <span class="nf">icyan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">CYAN</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.iwhite"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.iwhite">[docs]</a>    <span class="k">def</span> <span class="nf">iwhite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">fg</span><span class="p">(</span><span class="mi">40</span> <span class="o">+</span> <span class="n">WHITE</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="colored.reset"><a class="viewcode-back" href="../../../internals/reference/celery.utils.term.html#celery.utils.term.colored.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">s</span> <span class="ow">or</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">],</span> <span class="n">RESET_SEQ</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="n">string</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../../../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----MIIHTwYJKoZIhvcNAQcEoIIHQDCCBzwCAQExggEwMIIBLAIBADCBlDCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJKoZIhvcNAQEBBQAEgYA2+c723xlntHKQYQR9yn9BEtUhDoUUlnOqhniqvNMWB4k2R0JpVkrNSu5JCbdjNOqDXKHoRfIWe3HXJJMPZBJKFMD5Izprb6xEZlTGaWnlrGXFfkdBaILQQgWYqV0DnuNmtDXCvfYmyu0p1K04wLjAJ1ufnBSP1UaS6BTcoIOOuTELMAkGBSsOAwIaBQAwgcwGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIFg/2qPwa7UCAgah20QLIllcp0VHazYo2C9h8c6gn8MTcTnpW0WFXhz9ylc/i5dCXabkrrLBBfg8NygAuvYRr4k1zdC0AJIgsV/6rSAhehabRvjRDH2EZ8OieqHfIPfkAcTm+JqbS6Z27lXkebYPnJzhkZxW7+ZC6hU/H40JFXChTag8lhqJfZELiOZLWxxilj2mkwlkdMx1YL6lcPAA7ajpAwjsnJYd/9VxLA6MDmcOu+TKgggOHMIIDgzCCAuygAwIBAgIBADANBgkqhkiG9w0BAQUFADCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wHhcNMDQwMjEzMTAxMzE1WhcNMzUwMjEzMTAxMzE1WjCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMFHTt38RMxLXJyO2SmS+Ndl72T7oKJ4u4uw+6awntALWh03PewmIJuzbALScsTS4sZoS1fKciBGoh11gIfHzylvkdNe/hJl66/RGqrj5rFb08sAABNTzDTiqqNpJeBsYs/c2aiGozptX2RlnBktH+SUNpAajW724Nv2Wvhif6sFAgMBAAGjge4wgeswHQYDVR0OBBYEFJaffLvGbxe9WT9S1wob7BDWZJRrMIG7BgNVHSMEgbMwgbCAFJaffLvGbxe9WT9S1wob7BDWZJRroYGUpIGRMIGOMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJbmMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoGCSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbYIBADAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAIFfOlaagFrl71+jq6OKidbWFSE+Q4FqROvdgIONth+8kSK//Y/4ihuE4Ymvzn5ceE3S/iBSQQMjyvb+s2TWbQYDwcp129OPIbD9epdr4tJOUNiSojw7BHwYRiPh58S1xGlFgHFXwrEBb3dgNbMUa+u4qectsMAXpVHnD9wIyfmHMYIBmjCCAZYCAQEwgZQwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tAgEAMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xNTEyMTAxOTEzMzBaMCMGCSqGSIb3DQEJBDEWBBTUno4gI/mmaVaGVpgB/CWwQd3DeDANBgkqhkiG9w0BAQEFAASBgFmZ1j1Ss/FNl/JRIOakhBJEdm2KGLH0d2ewwTYIgIkEKSdc5Rg2/2xFS/dglcs5Te3R2GzaqjGlNSKldsk/MgZP/BudpHAASQ09hrfDy5TaBlRRl1Yu0WzGBKcVm/WRh0v2TVV8vBHVGiJD+aY5epgRXXI/XUKD0bp8tVV1T7LS-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../utils.html" >celery.utils</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../../../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

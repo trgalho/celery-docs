@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>celery.contrib.methods &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="next" title="celery.events" href="celery.events.html" />
+    <link rel="prev" title="celery.contrib.rdb" href="celery.contrib.rdb.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.events.html" title="celery.events"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.rdb.html" title="celery.contrib.rdb"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API Reference</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/reference/celery.contrib.methods.html">go here</a>.
+        </p>
+    
+
+</div>
+    <span class="target" id="module-celery.contrib.methods"></span><div class="section" id="celery-contrib-methods">
+<h1>celery.contrib.methods<a class="headerlink" href="#celery-contrib-methods" title="Permalink to this headline">¶</a></h1>
+<p>Task decorator that supports creating tasks out of methods.</p>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery.contrib.methods</span> <span class="kn">import</span> <span class="n">task</span>
+
+<span class="k">class</span> <span class="nc">X</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@task</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>or with any task decorator:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery.contrib.methods</span> <span class="kn">import</span> <span class="n">task_method</span>
+
+<span class="k">class</span> <span class="nc">X</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="n">task_method</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The task must use the new Task base class (<code class="xref py py-class docutils literal"><span class="pre">celery.Task</span></code>),
+and the old base class using classmethods (<code class="docutils literal"><span class="pre">celery.task.Task</span></code>,
+<code class="docutils literal"><span class="pre">celery.task.base.Task</span></code>).</p>
+<p>This means that you have to use the task decorator from a Celery app
+instance, and not the old-API:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">task</span>       <span class="c1"># BAD</span>
+<span class="kn">from</span> <span class="nn">celery.task</span> <span class="kn">import</span> <span class="n">task</span>  <span class="c1"># ALSO BAD</span>
+
+<span class="c1"># GOOD:</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="n">task_method</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+
+<span class="c1"># ALSO GOOD:</span>
+<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">current_app</span>
+
+<span class="nd">@current_app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="n">task_method</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+
+<span class="c1"># ALSO GOOD:</span>
+<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">shared_task</span>
+
+<span class="nd">@shared_task</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="n">task_method</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="caveats">
+<h2>Caveats<a class="headerlink" href="#caveats" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Automatic naming won&#8217;t be able to know what the class name is.</p>
+<blockquote>
+<div><p>The name will still be module_name + task_name,
+so two methods with the same name in the same module will collide
+so that only one task can run:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@task</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+
+<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@task</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>would have to be written as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;A.add&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+
+<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;B.add&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<dl class="class">
+<dt id="celery.contrib.methods.task_method">
+<em class="property">class </em><code class="descclassname">celery.contrib.methods.</code><code class="descname">task_method</code><span class="sig-paren">(</span><em>task</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/methods.html#task_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.methods.task_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="celery.contrib.methods.task">
+<code class="descclassname">celery.contrib.methods.</code><code class="descname">task</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/methods.html#task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.methods.task" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="celery.contrib.rdb.html"
+                        title="previous chapter">celery.contrib.rdb</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="celery.events.html"
+                        title="next chapter">celery.events</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/celery.contrib.methods.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.events.html" title="celery.events"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.rdb.html" title="celery.contrib.rdb"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

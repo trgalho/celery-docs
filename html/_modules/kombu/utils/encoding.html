@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kombu.utils.encoding &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="copyright" title="Copyright" href="../../../copyright.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../utils.html" accesskey="U">kombu.utils</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/_modules/kombu/utils/encoding.html">go here</a>.
+        </p>
+    
+
+</div>
+    <h1>Source code for kombu.utils.encoding</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">kombu.utils.encoding</span>
+<span class="sd">~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="sd">Utilities to encode text, and to safely emit text from running</span>
+<span class="sd">applications without crashing with the infamous :exc:`UnicodeDecodeError`</span>
+<span class="sd">exception.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="kn">from</span> <span class="nn">kombu.five</span> <span class="kn">import</span> <span class="n">text_t</span>
+
+<span class="n">is_py3k</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1">#: safe_str takes encoding from this file by default.</span>
+<span class="c1">#: :func:`set_default_encoding_file` can used to set the</span>
+<span class="c1">#: default output file.</span>
+<span class="n">default_encoding_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">set_default_encoding_file</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">default_encoding_file</span>
+    <span class="n">default_encoding_file</span> <span class="o">=</span> <span class="n">file</span>
+
+
+<span class="k">def</span> <span class="nf">get_default_encoding_file</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">default_encoding_file</span>
+
+
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;java&#39;</span><span class="p">):</span>     <span class="c1"># pragma: no cover</span>
+
+    <span class="k">def</span> <span class="nf">default_encoding</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;utf-8&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">default_encoding</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># noqa</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">get_default_encoding_file</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">sys</span><span class="o">.</span><span class="n">getfilesystemencoding</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">is_py3k</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+
+    <span class="k">def</span> <span class="nf">str_to_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">bytes_to_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">from_utf8</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">ensure_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">str_to_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">default_encode</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="n">str_t</span> <span class="o">=</span> <span class="nb">str</span>
+
+<span class="k">else</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">str_to_bytes</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>                <span class="c1"># noqa</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">bytes_to_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>                <span class="c1"># noqa</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">from_utf8</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># noqa</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">default_encode</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>            <span class="c1"># noqa</span>
+        <span class="k">return</span> <span class="n">unicode</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">default_encoding</span><span class="p">(</span><span class="n">file</span><span class="p">))</span>
+
+    <span class="n">str_t</span> <span class="o">=</span> <span class="n">unicode</span>
+    <span class="n">ensure_bytes</span> <span class="o">=</span> <span class="n">str_to_bytes</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">bytes_t</span> <span class="o">=</span> <span class="nb">bytes</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="n">bytes_t</span> <span class="o">=</span> <span class="nb">str</span>  <span class="c1"># noqa</span>
+
+
+<span class="k">def</span> <span class="nf">safe_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">bytes_to_str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">text_t</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">safe_repr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_safe_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">is_py3k</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">_safe_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;Unrepresentable </span><span class="si">{0!r}</span><span class="s1">: </span><span class="si">{1!r}</span><span class="s1"> </span><span class="si">{2!r}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">exc</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_stack</span><span class="p">()))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_safe_str</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># noqa</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="n">default_encoding</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">unicode</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;&lt;Unrepresentable </span><span class="si">{0!r}</span><span class="s1">: </span><span class="si">{1!r}</span><span class="s1"> </span><span class="si">{2!r}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">exc</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_stack</span><span class="p">()))</span>
+
+
+<span class="k">def</span> <span class="nf">safe_repr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_safe_str</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../../../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----MIIHTwYJKoZIhvcNAQcEoIIHQDCCBzwCAQExggEwMIIBLAIBADCBlDCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20CAQAwDQYJKoZIhvcNAQEBBQAEgYA2+c723xlntHKQYQR9yn9BEtUhDoUUlnOqhniqvNMWB4k2R0JpVkrNSu5JCbdjNOqDXKHoRfIWe3HXJJMPZBJKFMD5Izprb6xEZlTGaWnlrGXFfkdBaILQQgWYqV0DnuNmtDXCvfYmyu0p1K04wLjAJ1ufnBSP1UaS6BTcoIOOuTELMAkGBSsOAwIaBQAwgcwGCSqGSIb3DQEHATAUBggqhkiG9w0DBwQIFg/2qPwa7UCAgah20QLIllcp0VHazYo2C9h8c6gn8MTcTnpW0WFXhz9ylc/i5dCXabkrrLBBfg8NygAuvYRr4k1zdC0AJIgsV/6rSAhehabRvjRDH2EZ8OieqHfIPfkAcTm+JqbS6Z27lXkebYPnJzhkZxW7+ZC6hU/H40JFXChTag8lhqJfZELiOZLWxxilj2mkwlkdMx1YL6lcPAA7ajpAwjsnJYd/9VxLA6MDmcOu+TKgggOHMIIDgzCCAuygAwIBAgIBADANBgkqhkiG9w0BAQUFADCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wHhcNMDQwMjEzMTAxMzE1WhcNMzUwMjEzMTAxMzE1WjCBjjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtQYXlQYWwgSW5jLjETMBEGA1UECxQKbGl2ZV9jZXJ0czERMA8GA1UEAxQIbGl2ZV9hcGkxHDAaBgkqhkiG9w0BCQEWDXJlQHBheXBhbC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMFHTt38RMxLXJyO2SmS+Ndl72T7oKJ4u4uw+6awntALWh03PewmIJuzbALScsTS4sZoS1fKciBGoh11gIfHzylvkdNe/hJl66/RGqrj5rFb08sAABNTzDTiqqNpJeBsYs/c2aiGozptX2RlnBktH+SUNpAajW724Nv2Wvhif6sFAgMBAAGjge4wgeswHQYDVR0OBBYEFJaffLvGbxe9WT9S1wob7BDWZJRrMIG7BgNVHSMEgbMwgbCAFJaffLvGbxe9WT9S1wob7BDWZJRroYGUpIGRMIGOMQswCQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxFDASBgNVBAoTC1BheVBhbCBJbmMuMRMwEQYDVQQLFApsaXZlX2NlcnRzMREwDwYDVQQDFAhsaXZlX2FwaTEcMBoGCSqGSIb3DQEJARYNcmVAcGF5cGFsLmNvbYIBADAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4GBAIFfOlaagFrl71+jq6OKidbWFSE+Q4FqROvdgIONth+8kSK//Y/4ihuE4Ymvzn5ceE3S/iBSQQMjyvb+s2TWbQYDwcp129OPIbD9epdr4tJOUNiSojw7BHwYRiPh58S1xGlFgHFXwrEBb3dgNbMUa+u4qectsMAXpVHnD9wIyfmHMYIBmjCCAZYCAQEwgZQwgY4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEWMBQGA1UEBxMNTW91bnRhaW4gVmlldzEUMBIGA1UEChMLUGF5UGFsIEluYy4xEzARBgNVBAsUCmxpdmVfY2VydHMxETAPBgNVBAMUCGxpdmVfYXBpMRwwGgYJKoZIhvcNAQkBFg1yZUBwYXlwYWwuY29tAgEAMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xNTEyMTAxOTEzMzBaMCMGCSqGSIb3DQEJBDEWBBTUno4gI/mmaVaGVpgB/CWwQd3DeDANBgkqhkiG9w0BAQEFAASBgFmZ1j1Ss/FNl/JRIOakhBJEdm2KGLH0d2ewwTYIgIkEKSdc5Rg2/2xFS/dglcs5Te3R2GzaqjGlNSKldsk/MgZP/BudpHAASQ09hrfDy5TaBlRRl1Yu0WzGBKcVm/WRh0v2TVV8vBHVGiJD+aY5epgRXXI/XUKD0bp8tVV1T7LS-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../utils.html" >kombu.utils</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../../../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

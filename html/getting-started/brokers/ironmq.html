@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using IronMQ &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="copyright" title="Copyright" href="../../copyright.html" />
+    <link rel="next" title="First Steps with Celery" href="../first-steps-with-celery.html" />
+    <link rel="prev" title="Using Beanstalk" href="beanstalk.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../first-steps-with-celery.html" title="First Steps with Celery"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="beanstalk.html" title="Using Beanstalk"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Getting Started</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">Brokers</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/getting-started/brokers/ironmq.html">go here</a>.
+        </p>
+    
+
+</div>
+    <div class="section" id="using-ironmq">
+<span id="broker-ironmq"></span><h1>Using IronMQ<a class="headerlink" href="#using-ironmq" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="installation">
+<span id="broker-ironmq-installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>For IronMQ support, you&#8217;ll need the [iron_celery](<a class="reference external" href="http://github.com/iron-io/iron_celery">http://github.com/iron-io/iron_celery</a>) library:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ pip install iron_celery
+</pre></div>
+</div>
+<p>As well as an [Iron.io account](<a class="reference external" href="http://www.iron.io">http://www.iron.io</a>). Sign up for free at [iron.io](<a class="reference external" href="http://www.iron.io">http://www.iron.io</a>).</p>
+</div>
+<div class="section" id="configuration">
+<span id="broker-ironmq-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>First, you&#8217;ll need to import the iron_celery library right after you import Celery, for example:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">Celery</span>
+<span class="kn">import</span> <span class="nn">iron_celery</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span><span class="s1">&#39;mytasks&#39;</span><span class="p">,</span> <span class="n">broker</span><span class="o">=</span><span class="s1">&#39;ironmq://&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;ironcache://&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You have to specify IronMQ in the broker URL:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">BROKER_URL</span> <span class="o">=</span> <span class="s1">&#39;ironmq://ABCDEFGHIJKLMNOPQRST:ZYXK7NiynGlTogH8Nj+P9nlE73sq3@&#39;</span>
+</pre></div>
+</div>
+<p>where the URL format is:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">ironmq</span><span class="p">:</span><span class="o">//</span><span class="n">project_id</span><span class="p">:</span><span class="n">token</span><span class="o">@</span>
+</pre></div>
+</div>
+<p>you must <em>remember to include the &#8220;&#64;&#8221; at the end</em>.</p>
+<p>The login credentials can also be set using the environment variables
+<span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">IRON_TOKEN</span></code> and <span class="target" id="index-1"></span><code class="xref std std-envvar docutils literal"><span class="pre">IRON_PROJECT_ID</span></code>, which are set automatically if you use the IronMQ Heroku add-on.
+And in this case the broker url may only be:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">ironmq</span><span class="p">:</span><span class="o">//</span>
+</pre></div>
+</div>
+<div class="section" id="clouds">
+<h3>Clouds<a class="headerlink" href="#clouds" title="Permalink to this headline">¶</a></h3>
+<p>The default cloud/region is <code class="docutils literal"><span class="pre">AWS</span> <span class="pre">us-east-1</span></code>. You can choose the IronMQ Rackspace (ORD) cloud by changing the URL to:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">ironmq</span><span class="p">:</span><span class="o">//</span><span class="n">project_id</span><span class="p">:</span><span class="n">token</span><span class="nd">@mq</span><span class="o">-</span><span class="n">rackspace</span><span class="o">-</span><span class="nb">ord</span><span class="o">.</span><span class="n">iron</span><span class="o">.</span><span class="n">io</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="results">
+<h2>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h2>
+<p>You can store results in IronCache with the same Iron.io credentials, just set the results URL with the same syntax
+as the broker URL, but changing the start to <code class="docutils literal"><span class="pre">ironcache</span></code>:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">ironcache</span><span class="p">::</span><span class="o">//</span><span class="n">project_id</span><span class="p">:</span><span class="n">token</span><span class="o">@</span>
+</pre></div>
+</div>
+<p>This will default to a cache named &#8220;Celery&#8221;, if you want to change that:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">ironcache</span><span class="p">::</span><span class="o">//</span><span class="n">project_id</span><span class="p">:</span><span class="n">token</span><span class="o">@/</span><span class="n">awesomecache</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="more-information">
+<h2>More Information<a class="headerlink" href="#more-information" title="Permalink to this headline">¶</a></h2>
+<p>You can find more information in the [iron_celery README](<a class="reference external" href="http://github.com/iron-io/iron_celery">http://github.com/iron-io/iron_celery</a>).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="beanstalk.html"
+                        title="previous chapter">Using Beanstalk</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../first-steps-with-celery.html"
+                        title="next chapter">First Steps with Celery</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/getting-started/brokers/ironmq.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../first-steps-with-celery.html" title="First Steps with Celery"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="beanstalk.html" title="Using Beanstalk"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Getting Started</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="index.html" >Brokers</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>celery.contrib.batches &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="next" title="celery.contrib.migrate" href="celery.contrib.migrate.html" />
+    <link rel="prev" title="celery.contrib.abortable" href="celery.contrib.abortable.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.migrate.html" title="celery.contrib.migrate"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.abortable.html" title="celery.contrib.abortable"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API Reference</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/reference/celery.contrib.batches.html">go here</a>.
+        </p>
+    
+
+</div>
+    <span class="target" id="module-celery.contrib.batches"></span><div class="section" id="celery-contrib-batches">
+<h1>celery.contrib.batches<a class="headerlink" href="#celery-contrib-batches" title="Permalink to this headline">¶</a></h1>
+<p>Experimental task class that buffers messages and processes them as a list.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>For this to work you have to set
+<a class="reference internal" href="../configuration.html#std:setting-CELERYD_PREFETCH_MULTIPLIER"><code class="xref std std-setting docutils literal"><span class="pre">CELERYD_PREFETCH_MULTIPLIER</span></code></a> to zero, or some value where
+the final multiplied value is higher than <code class="docutils literal"><span class="pre">flush_every</span></code>.</p>
+<p class="last">In the future we hope to add the ability to direct batching tasks
+to a channel with different QoS requirements than the task channel.</p>
+</div>
+<p><strong>Simple Example</strong></p>
+<p>A click counter that flushes the buffer every 100 messages, and every
+10 seconds.  Does not do anything with the data, but can easily be modified
+to store it in a database.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># Flush after 100 messages, or 10 seconds.</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="n">Batches</span><span class="p">,</span> <span class="n">flush_every</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">flush_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">count_click</span><span class="p">(</span><span class="n">requests</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">url</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">count</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&gt;&gt;&gt; Clicks: </span><span class="si">{0}</span><span class="s1"> -&gt; </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Then you can ask for a click to be counted by doing:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">count_click</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Example returning results</strong></p>
+<p>An interface to the Web of Trust API that flushes the buffer every 100
+messages, and every 10 seconds.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">urlparse</span> <span class="kn">import</span> <span class="n">urlparse</span>
+
+<span class="kn">from</span> <span class="nn">celery.contrib.batches</span> <span class="kn">import</span> <span class="n">Batches</span>
+
+<span class="n">wot_api_target</span> <span class="o">=</span> <span class="s1">&#39;https://api.mywot.com/0.4/public_link_json&#39;</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="n">Batches</span><span class="p">,</span> <span class="n">flush_every</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">flush_interval</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">wot_api</span><span class="p">(</span><span class="n">requests</span><span class="p">):</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">url</span><span class="p">:</span> <span class="n">url</span>
+    <span class="n">reponses</span> <span class="o">=</span> <span class="n">wot_api_real</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">sig</span><span class="p">(</span><span class="o">*</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">request</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c1"># use mark_as_done to manually return response data</span>
+    <span class="k">for</span> <span class="n">response</span><span class="p">,</span> <span class="n">request</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">reponses</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">mark_as_done</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">wot_api_real</span><span class="p">(</span><span class="n">urls</span><span class="p">):</span>
+    <span class="n">domains</span> <span class="o">=</span> <span class="p">[</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span> <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="n">wot_api_target</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;hosts&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">domains</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="n">domain</span><span class="p">]</span> <span class="k">for</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">domains</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Using the API is done as follows:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wot_api</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="s1">&#39;http://example.com&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If you don&#8217;t have an <code class="docutils literal"><span class="pre">app</span></code> instance then use the current app proxy
+instead:</p>
+<div class="last highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">current_app</span>
+<span class="n">app</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">mark_as_done</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p><strong>API</strong></p>
+<dl class="class">
+<dt id="celery.contrib.batches.Batches">
+<em class="property">class </em><code class="descclassname">celery.contrib.batches.</code><code class="descname">Batches</code><a class="reference internal" href="../_modules/celery/contrib/batches.html#Batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.Batches" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="celery.contrib.batches.Batches.Strategy">
+<code class="descname">Strategy</code><span class="sig-paren">(</span><em>task</em>, <em>app</em>, <em>consumer</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#Batches.Strategy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.Batches.Strategy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.contrib.batches.Batches.apply_buffer">
+<code class="descname">apply_buffer</code><span class="sig-paren">(</span><em>requests</em>, <em>args=()</em>, <em>kwargs={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#Batches.apply_buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.Batches.apply_buffer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.contrib.batches.Batches.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><em>requests</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#Batches.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.Batches.flush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.Batches.flush_every">
+<code class="descname">flush_every</code><em class="property"> = 10</em><a class="headerlink" href="#celery.contrib.batches.Batches.flush_every" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum number of message in buffer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.Batches.flush_interval">
+<code class="descname">flush_interval</code><em class="property"> = 30</em><a class="headerlink" href="#celery.contrib.batches.Batches.flush_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeout in seconds before buffer is flushed anyway.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="celery.contrib.batches.Batches.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>requests</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#Batches.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.Batches.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="celery.contrib.batches.SimpleRequest">
+<em class="property">class </em><code class="descclassname">celery.contrib.batches.</code><code class="descname">SimpleRequest</code><span class="sig-paren">(</span><em>id</em>, <em>name</em>, <em>args</em>, <em>kwargs</em>, <em>delivery_info</em>, <em>hostname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#SimpleRequest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.SimpleRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pickleable request.</p>
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.args">
+<code class="descname">args</code><em class="property"> = ()</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>positional arguments</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.delivery_info">
+<code class="descname">delivery_info</code><em class="property"> = None</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.delivery_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>message delivery information.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="celery.contrib.batches.SimpleRequest.from_request">
+<em class="property">classmethod </em><code class="descname">from_request</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/contrib/batches.html#SimpleRequest.from_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.from_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.hostname">
+<code class="descname">hostname</code><em class="property"> = None</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.hostname" title="Permalink to this definition">¶</a></dt>
+<dd><p>worker node name</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.id">
+<code class="descname">id</code><em class="property"> = None</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>task id</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.kwargs">
+<code class="descname">kwargs</code><em class="property"> = {}</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>keyword arguments</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="celery.contrib.batches.SimpleRequest.name">
+<code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#celery.contrib.batches.SimpleRequest.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>task name</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="celery.contrib.abortable.html"
+                        title="previous chapter">celery.contrib.abortable</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="celery.contrib.migrate.html"
+                        title="next chapter">celery.contrib.migrate</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/celery.contrib.batches.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.migrate.html" title="celery.contrib.migrate"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="celery.contrib.abortable.html" title="celery.contrib.abortable"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>

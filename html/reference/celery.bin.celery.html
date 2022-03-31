@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>celery.bin.celery &#8212; Celery 3.1.25 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/celery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="copyright" title="Copyright" href="../copyright.html" />
+    <link rel="next" title="celery.bin.worker" href="celery.bin.worker.html" />
+    <link rel="prev" title="celery.bin.base" href="celery.bin.base.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.bin.worker.html" title="celery.bin.worker"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="celery.bin.base.html" title="celery.bin.base"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">API Reference</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+<div class="deck">
+
+    
+        <p>
+        This document describes the current stable version of Celery (3.1). For development docs,
+        <a href="http://docs.celeryproject.org/en/master/reference/celery.bin.celery.html">go here</a>.
+        </p>
+    
+
+</div>
+    <div class="section" id="celery-bin-celery">
+<h1>celery.bin.celery<a class="headerlink" href="#celery-bin-celery" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-celery.bin.celery"></span><p>The <strong class="program">celery</strong> umbrella command.</p>
+<dl class="class">
+<dt id="celery.bin.celery.CeleryCommand">
+<em class="property">class </em><code class="descclassname">celery.bin.celery.</code><code class="descname">CeleryCommand</code><span class="sig-paren">(</span><em>app=None</em>, <em>get_app=None</em>, <em>no_color=False</em>, <em>stdout=None</em>, <em>stderr=None</em>, <em>quiet=False</em>, <em>on_error=None</em>, <em>on_usage_error=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="celery.bin.celery.CeleryCommand.commands">
+<code class="descname">commands</code><em class="property"> = {'amqp': &lt;class 'celery.bin.amqp.amqp'&gt;, 'beat': &lt;class 'celery.bin.beat.beat'&gt;, 'call': &lt;class 'celery.bin.celery.call'&gt;, 'control': &lt;class 'celery.bin.celery.control'&gt;, 'events': &lt;class 'celery.bin.events.events'&gt;, 'graph': &lt;class 'celery.bin.graph.graph'&gt;, 'help': &lt;class 'celery.bin.celery.help'&gt;, 'inspect': &lt;class 'celery.bin.celery.inspect'&gt;, 'list': &lt;class 'celery.bin.celery.list_'&gt;, 'migrate': &lt;class 'celery.bin.celery.migrate'&gt;, 'multi': &lt;class 'celery.bin.celery.multi'&gt;, 'purge': &lt;class 'celery.bin.celery.purge'&gt;, 'report': &lt;class 'celery.bin.celery.report'&gt;, 'result': &lt;class 'celery.bin.celery.result'&gt;, 'shell': &lt;class 'celery.bin.celery.shell'&gt;, 'status': &lt;class 'celery.bin.celery.status'&gt;, 'worker': &lt;class 'celery.bin.worker.worker'&gt;}</em><a class="headerlink" href="#celery.bin.celery.CeleryCommand.commands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.bin.celery.CeleryCommand.enable_config_from_cmdline">
+<code class="descname">enable_config_from_cmdline</code><em class="property"> = True</em><a class="headerlink" href="#celery.bin.celery.CeleryCommand.enable_config_from_cmdline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>command</em>, <em>argv=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.execute_from_commandline">
+<code class="descname">execute_from_commandline</code><span class="sig-paren">(</span><em>argv=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.execute_from_commandline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.execute_from_commandline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.bin.celery.CeleryCommand.ext_fmt">
+<code class="descname">ext_fmt</code><em class="property"> = '{self.namespace}.commands'</em><a class="headerlink" href="#celery.bin.celery.CeleryCommand.ext_fmt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="celery.bin.celery.CeleryCommand.get_command_info">
+<em class="property">classmethod </em><code class="descname">get_command_info</code><span class="sig-paren">(</span><em>command</em>, <em>indent=0</em>, <em>color=None</em>, <em>colored=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.get_command_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.get_command_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.handle_argv">
+<code class="descname">handle_argv</code><span class="sig-paren">(</span><em>prog_name</em>, <em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.handle_argv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.handle_argv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="celery.bin.celery.CeleryCommand.list_commands">
+<em class="property">classmethod </em><code class="descname">list_commands</code><span class="sig-paren">(</span><em>indent=0</em>, <em>colored=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.list_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.list_commands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.load_extension_commands">
+<code class="descname">load_extension_commands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.load_extension_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.load_extension_commands" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.bin.celery.CeleryCommand.namespace">
+<code class="descname">namespace</code><em class="property"> = 'celery'</em><a class="headerlink" href="#celery.bin.celery.CeleryCommand.namespace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.on_concurrency_setup">
+<code class="descname">on_concurrency_setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.on_concurrency_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.on_concurrency_setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.on_usage_error">
+<code class="descname">on_usage_error</code><span class="sig-paren">(</span><em>exc</em>, <em>command=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.on_usage_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.on_usage_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.prepare_prog_name">
+<code class="descname">prepare_prog_name</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.prepare_prog_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.prepare_prog_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="celery.bin.celery.CeleryCommand.prog_name">
+<code class="descname">prog_name</code><em class="property"> = 'celery'</em><a class="headerlink" href="#celery.bin.celery.CeleryCommand.prog_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="celery.bin.celery.CeleryCommand.register_command">
+<em class="property">classmethod </em><code class="descname">register_command</code><span class="sig-paren">(</span><em>fun</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.register_command"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.register_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="celery.bin.celery.CeleryCommand.with_pool_option">
+<code class="descname">with_pool_option</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#CeleryCommand.with_pool_option"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.CeleryCommand.with_pool_option" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="celery.bin.celery.main">
+<code class="descclassname">celery.bin.celery.</code><code class="descname">main</code><span class="sig-paren">(</span><em>argv=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/celery/bin/celery.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#celery.bin.celery.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><p class="logo"><a href="../index.html">
+  <img class="logo" src="http://cloud.github.com/downloads/celery/celery/celery_128.png" alt="Logo"/>
+</a></p>
+<div id="donate">
+    <b>Donations welcome:</b>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+    ">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</div>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="celery.bin.base.html"
+                        title="previous chapter">celery.bin.base</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="celery.bin.worker.html"
+                        title="next chapter">celery.bin.worker</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/reference/celery.bin.celery.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="celery.bin.worker.html" title="celery.bin.worker"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="celery.bin.base.html" title="celery.bin.base"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Celery 3.1.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >API Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; <a href="../copyright.html">Copyright</a> 2009-2015, Ask Solem &amp; Contributors.
+    </div>
+  </body>
+</html>
